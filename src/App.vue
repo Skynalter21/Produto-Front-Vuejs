@@ -22,6 +22,16 @@
         <input type="number" placeholder="QTD" v-model="produto.estoque" />
         <label>Valor</label>
         <input type="text" placeholder="Valor" v-model="produto.valor" />
+        
+        <label>Cidade</label>
+        <div class="input-field col s12" style="padding-bottom: 30px">  
+          <select style="display: block !important;" v-model="produto.idCidade">
+            <option value="" disabled selected>Escolher cidade</option>
+            <option v-for="cidade of cidades" :key="cidade.id" :value="cidade.id">
+              {{ cidade.nome }}
+            </option>
+          </select>
+        </div>
 
         <button class="waves-effect waves-light btn-small pl-10" @click="salvar">
           Salvar
@@ -52,6 +62,7 @@
             <th>NOME</th>
             <th>ESTOQUE</th>
             <th>VALOR</th>
+            <th>CIDADE</th>
             <th>OPÇÕES</th>
           </tr>
         </thead>
@@ -61,6 +72,7 @@
             <td>{{ produto.nome }}</td>
             <td>{{ produto.estoque }}</td>
             <td>{{ produto.valor }}</td>
+            <td>{{ produto.cidade ? produto.cidade.nome : '' }}</td>
             <td>
               <button @click="editar(produto)" class="waves-effect btn-small blue darken-1">
                 <i class="material-icons">create</i>
@@ -79,6 +91,7 @@
 <script>
 
 import Produto from './services/produtos'
+import Cidade from './services/cidades'
 
 // ESLINT e Prettier
 
@@ -90,20 +103,32 @@ export default {
         id:'',
         nome:'',
         estoque:'',
-        valor:''
+        valor:'',
+        cidade: null,
+        idCidade: ''
       },
       produtos: [],
+      cidades: [],
       erros:[],
-      filtroNome: ''
+      filtroNome: '',
+      selected: ''
     }
   },
 
+
   mounted(){
-    // this.listar()
+
+    this.listarCidades()
   },
 
   methods: {
 
+
+    listarCidades(){
+      Cidade.listar().then(resposta => {
+        this.cidades = resposta.data
+      })
+    },
     listar(){
       Produto.listar().then(resposta => {
         this.produtos = resposta.data
@@ -131,6 +156,11 @@ export default {
     },
     salvar (){
       if (this.validar()) {
+        if (this.produto.idCidade) {
+          this.produto.cidade = {
+            id: this.produto.idCidade
+          }
+        }
         if(!this.produto.id){
           Produto.salvar(this.produto).then(() => {
             this.produto = {}
